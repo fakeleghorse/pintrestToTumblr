@@ -27,11 +27,7 @@ const firebaseConfig = {
 };
 
 const firebase = require("firebase");
-var router = express.Router();
-/* GET home page. */
-router.get('/', function(req, res, next) {
-    res.json({message: 'alive'});
-  });
+
 // Required for side-effects
 require("firebase/firestore");
 // Initialize Firebase
@@ -42,49 +38,52 @@ const db = firebase.firestore();
 let blogName = 'pappater';
 let params = {}
 
+
 async function doTumblrPhotoPost() {
     let feed = await parser.parseURL('https://in.pinterest.com/capecapricorn/pappater.rss');
     let docRef = db.collection("urls").doc("url");
     docRef.get().then((doc) => {
         if (doc.exists) {
-           let existingUrl = doc.data().data
-           feed.items.forEach((item, index) => {
-            if (index <=20) {
-                let imageUrlFirstLvl = item.content.split("src=")[1].split("><")[0].replace("236x", "1200x");
-                imageUrlFirstLvl = imageUrlFirstLvl.substring(1, imageUrlFirstLvl.length - 1);
-                params.source = imageUrlFirstLvl;
-                if (!existingUrl.includes(imageUrlFirstLvl)) {
-                    console.log("no include");
-                    // post to tumblr
-                    client.createPhotoPost(blogName, params, function (err, resp) {
-                        if(resp){
-                            console.log("posted to tumblr >>>>>"); 
-                            db.collection("urls").doc("url").set({data:[...existingUrl,imageUrlFirstLvl ]});
-                        }
-                      // your photo post is submitted to tumblr successfully.
-                        // if(!err){
-                           
-                        // }
-                    });
-    
+            let existingUrl = doc.data().data
+            feed.items.forEach((item, index) => {
+                if (index <= 20) {
+                    let imageUrlFirstLvl = item.content.split("src=")[1].split("><")[0].replace("236x", "1200x");
+                    imageUrlFirstLvl = imageUrlFirstLvl.substring(1, imageUrlFirstLvl.length - 1);
+                    params.source = imageUrlFirstLvl;
+                    if (!existingUrl.includes(imageUrlFirstLvl)) {
+                        console.log("no include");
+                        // post to tumblr
+                        client.createPhotoPost(blogName, params, function (err, resp) {
+                            if (resp) {
+                                console.log("posted to tumblr >>>>>");
+                                db.collection("urls").doc("url").set({ data: [...existingUrl, imageUrlFirstLvl] });
+                            }
+                            // your photo post is submitted to tumblr successfully.
+                            // if(!err){
+
+                            // }
+                        });
+
+                    }
                 }
-            }
-        })
+            })
         } else {
             console.log("No such document!");
         }
     }).catch((error) => {
         console.log("Error getting document:", error);
     });
-    
-    
+
+
 };
- cron.schedule("*/1 * * * * *", () => {
-        console.log("calling >>>>>>> doTumblrPhotoPost()");
-        doTumblrPhotoPost();
-    });
+cron.schedule("*/1 * * * * *", () => {
+    console.log("calling >>>>>>> doTumblrPhotoPost()");
+    doTumblrPhotoPost();
+});
 
-
+app.get('/', (req, res) => {
+    res.send('hello world')
+})
 app.listen(port, () => {            //server starts listening for any attempts from a client to connect at port: {port}
     console.log(`Now listening on port ${port}`);
 });
