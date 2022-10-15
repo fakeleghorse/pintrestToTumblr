@@ -76,7 +76,7 @@ async function doTumblrPhotoPost() {
 
 
 };
-cron.schedule("* * * * *", () => {
+cron.schedule("*/5 * * * *", () => {
     console.log("calling >>>>>>> doTumblrPhotoPost()");
     doTumblrPhotoPost();
 });
