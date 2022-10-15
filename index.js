@@ -1,7 +1,7 @@
 const express = require('express'); //Import the express dependency
 const { pintrestToTumblr } = require('./modules/pintrestToTumblr');
 const app = express();              //Instantiate an express app, the main work horse of this server
-const port = 4000;                  //Save the port number where your server will be listening
+const port =process.env.PORT || 4000;                  //Save the port number where your server will be listening
 require('dotenv').config();
 var cron = require('node-cron');
 
@@ -76,7 +76,7 @@ async function doTumblrPhotoPost() {
 
 
 };
-cron.schedule("*/1 * * * * *", () => {
+cron.schedule("* * * * *", () => {
     console.log("calling >>>>>>> doTumblrPhotoPost()");
     doTumblrPhotoPost();
 });
