@@ -47,7 +47,7 @@ async function doTumblrPhotoPost() {
             let existingUrl = doc.data().data
             feed.items.forEach((item, index) => {
                 if (index <= 20) {
-                    let imageUrlFirstLvl = item.content.split("src=")[1].split("><")[0].replace("236x", "1200x");
+                    let imageUrlFirstLvl = item.content.split("src=")[1].split("><")[0].replace("236x", "originals");
                     imageUrlFirstLvl = imageUrlFirstLvl.substring(1, imageUrlFirstLvl.length - 1);
                     params.source = imageUrlFirstLvl;
                     if (!existingUrl.includes(imageUrlFirstLvl)) {
