@@ -1,7 +1,7 @@
 const express = require('express'); //Import the express dependency
 const { pintrestToTumblr } = require('./modules/pintrestToTumblr');
 const app = express();              //Instantiate an express app, the main work horse of this server
-const port =process.env.PORT || 4000;                  //Save the port number where your server will be listening
+const port = process.env.PORT || 4000;                  //Save the port number where your server will be listening
 require('dotenv').config();
 var cron = require('node-cron');
 
@@ -41,44 +41,41 @@ let params = {}
 
 async function doTumblrPhotoPost() {
     let feed = await parser.parseURL('https://in.pinterest.com/capecapricorn/pappater.rss');
-    let docRef = db.collection("urls").doc("url");
-    docRef.get().then((doc) => {
-        if (doc.exists) {
-            let existingUrl = doc.data().data
-            feed.items.forEach((item, index) => {
-                if (index <= 20) {
-                    let imageUrlFirstLvl = item.content.split("src=")[1].split("><")[0].replace("236x", "originals");
+    for (let i = 0, p = Promise.resolve(); i < feed.items.length; i++) {
+        p = p.then(_ => new Promise(resolve => {
+            let docRef = db.collection("urls").doc("url");
+            docRef.get().then((doc) => {
+                if (doc.exists) {
+                    let existingUrl = doc.data().data;
+                    console.log("existingUrl", i);
+                    let imageUrlFirstLvl = feed.items[i].content.split("src=")[1].split("><")[0].replace("236x", "originals");
                     imageUrlFirstLvl = imageUrlFirstLvl.substring(1, imageUrlFirstLvl.length - 1);
                     params.source = imageUrlFirstLvl;
                     if (!existingUrl.includes(imageUrlFirstLvl)) {
                         console.log("no include");
+                        db.collection("urls").doc("url").set({ data: [...existingUrl, imageUrlFirstLvl] });
                         // post to tumblr
                         client.createPhotoPost(blogName, params, function (err, resp) {
-                            if (resp) {
-                                console.log("posted to tumblr >>>>>");
-                                db.collection("urls").doc("url").set({ data: [...existingUrl, imageUrlFirstLvl] });
-                            }
-                            // your photo post is submitted to tumblr successfully.
-                            // if(!err){
-
-                            // }
+                            console.log("posted to tumblr >>>>>");
+                            resolve();
                         });
-
                     }
+                } else {
+                    console.log("No such document!");
                 }
-            })
-        } else {
-            console.log("No such document!");
+            }).catch((error) => {
+                console.log("Error getting document:", error);
+            });
         }
-    }).catch((error) => {
-        console.log("Error getting document:", error);
-    });
+        ));
+    }
+
 
 
 };
 cron.schedule("*/5 * * * *", () => {
-    console.log("calling >>>>>>> doTumblrPhotoPost()");
-    doTumblrPhotoPost();
+console.log("calling >>>>>>> doTumblrPhotoPost()");
+doTumblrPhotoPost();
 });
 
 app.get('/', (req, res) => {
