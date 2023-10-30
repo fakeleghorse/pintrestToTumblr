@@ -40,7 +40,7 @@ let params = {}
 
 
 async function doTumblrPhotoPost() {
-    let feed = await parser.parseURL('https://in.pinterest.com/pappater/pappater.rss');
+    let feed = await parser.parseURL('https://in.pinterest.com/pratantada/xkiopechirom.rss');
     for (let i = 0, p = Promise.resolve(); i < feed.items.length; i++) {
         p = p.then(_ => new Promise(resolve => {
             let docRef = db.collection("urls").doc("url");
